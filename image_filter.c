@@ -31,12 +31,15 @@ void create_filter(double gKernel[][5])
 }
 
 
-void gaussian_filter(unsigned char img_read[][848][3], unsigned char img_write[][848][3], int y, int x){
-    //int m, n, k;
+void gaussian_filter(unsigned char *img_read, unsigned char *img_write, int y, int x){
     int p, q, r;
     double sum;
     double gKernel[5][5];
+    unsigned char (*imread_array)[848][3] = (unsigned char (*)[848][3]) img_read;
+    unsigned char (*imwrite_array)[848][3] = (unsigned char (*)[848][3]) img_write;
     create_filter(gKernel);
+
+
 
     for(r=0; r<3; r++){
         sum = 0.;
@@ -47,19 +50,19 @@ void gaussian_filter(unsigned char img_read[][848][3], unsigned char img_write[]
             //for each column of the filter
             //for(q=0; q<5; q++){
             for(q=-2; q<3; q++){
-                sum += gKernel[p+2][q+2] * img_read[y+p][x+q][r];
+                sum += gKernel[p+2][q+2] * imread_array[y+p][x+q][r];
             }
         }
         //img_write[2][2][r] = sum;
-        img_write[y][x][r] = sum;
+        imwrite_array[y][x][r] = sum;
     }
 
 }
 
 
-void apply_any_filter(unsigned char  img[][848][3],
-                      unsigned char  img_final[][848][3],
-                      void (*filter)(unsigned char [][848][3], unsigned char [][848][3], int, int)){ 
+void apply_any_filter(unsigned char  *img,
+                      unsigned char  *img_final,
+                      void (*filter)(unsigned char *, unsigned char *, int, int)){ 
     int w, h, b, i, j, k, offset_h, offset_v, m, n;
     int start_left, end_left, start_top, end_top;
     unsigned char ***img_chunk;
@@ -83,18 +86,13 @@ void apply_any_filter(unsigned char  img[][848][3],
 
 }
 
-
-void write_png(unsigned char img[][848][3], int width, int height){
-    stbi_write_png("landscape_out_python.png", width, height, 3, img, 3*width);
-    printf("finished");
+void write_png(char *fname, unsigned char *img, int width, int height){
+    stbi_write_png(fname, width, height, 3, img, 3*width);
+    printf("finished\n");
 }
 
 unsigned char *read_png(char *name, int *width, int *height, int *bpp){
-    printf("started reading");
-    //unsigned char (*)[1364][3] ptr;
-    //#int width, height, bpp, i, j, k, w, h, b;
     unsigned char* rgb = stbi_load(name, width, height, bpp, 3);
-    printf("finished reading");
     return rgb;
 }
 

@@ -11,7 +11,7 @@ main()
 
     //Raw memory for the filtered image
     unsigned char img_filtered[500][848][3];
-    apply_any_filter((unsigned char (*)[848][3]) rgb, img_filtered, &gaussian_filter);
+    apply_any_filter(rgb, (unsigned char *)img_filtered, &gaussian_filter);
 
     stbi_write_png("landscape_filtered_c.png", width, height, 3, img_filtered, 3*width);
     printf("done\n");

@@ -24,7 +24,6 @@ def create_gaussian_kernel(kernel):
     for i in range(5):
         for j in range(5):
             kernel[i][j] /= sum_;
- 
 
 
 gKernel = np.zeros((5,5))
@@ -53,15 +52,9 @@ int_p = POINTER(c_int)
 i1 = c_int()
 i2 = c_int()
 i3 = c_int()
-ip1 = pointer(i1)
-ip2 = pointer(i2)
-ip3 = pointer(i3)
-
-# Create array type to hold raw memory for filtered image
-array_type = c_ubyte * 500 * 848 * 3
-
-# Create a new empty array
-arg2 = array_type()
+widthp = pointer(i1)
+heightp = pointer(i2)
+bpp = pointer(i3)
 
 # Get the read_png function from the shared library and set arg/result types
 read_png = ifilter.read_png
@@ -69,10 +62,19 @@ read_png.restype = POINTER(c_ubyte)
 read_png.argtypes = [c_char_p, int_p, int_p, int_p]
 
 # Read the file
-pic = read_png(b"landscape1.png", ip1, ip2, ip3)
+pic = read_png(b"landscape1.png", widthp, heightp, bpp)
+
+import pdb;pdb.set_trace()
+
+# Create array type to hold raw memory for filtered image
+array_type = c_ubyte * heightp[0] * widthp[0] * 3
+
+# Create a new empty array
+arg2 = array_type()
 
 # pass the numba-jitted "cfunc" to the C function
 ifilter.apply_any_filter(pic, byref(arg2), gaussian_filter.ctypes)
 
 # Write the resulting file
-ifilter.write_png(byref(arg2), 848, 500)
+#ifilter.write_png(byref(arg2), 848, 500)
+ifilter.write_png(b"landscape_out_python.png", byref(arg2), widthp[0], heightp[0])
