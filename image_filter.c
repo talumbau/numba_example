@@ -31,38 +31,7 @@ void create_filter(double gKernel[][5])
 }
 
 
-void example_image(unsigned char  img[][9][3]){
-    int w, h, b, i, j, k;
-    h = 12;
-    w = 9;
-    b = 3;
-    //char img[12][9][3];
-    //char (*img)[9][3]=(char (*)[9][3]) img_raw;
-
-    for(j=0; j<h; ++j){
-        for(i=0; i<w; ++i) {
-            if (i/3 == 0) {
-                img[j][i][0] = 0;
-                img[j][i][1] = 0;
-                img[j][i][2] = 255;
-            }
-            if (i/3 == 1) {
-                img[j][i][0] = 0;
-                img[j][i][1] = 255;
-                img[j][i][2] = 0;
-            }
-            if (i/3 == 2) {
-                img[j][i][0] = 255;
-                img[j][i][1] = 0;
-                img[j][i][2] = 0;
-            }
-        }
-    }
-
-    //return img
-}
-
-void modify_image(unsigned char  img[][1364][3]){
+void modify_image(unsigned char  img[][848][3]){
     int w, h, b, i, j, k, offset_h, offset_v;
     //h = 1364;
     //w = 1364;
@@ -96,12 +65,12 @@ void modify_image(unsigned char  img[][1364][3]){
 }
 
 
-void apply_filter(unsigned char  img[][1364][3], unsigned char  img_final[][1364][3]){
+void apply_filter(unsigned char  img[][848][3], unsigned char  img_final[][848][3]){
     int w, h, b, i, j, k, offset_h, offset_v, m, n;
     int start_left, end_left, start_top, end_top;
     double sum;
-    h = 1364;
-    w = 1364;
+    h = 500;
+    w = 848;
     b = 3;
 
     start_left = 2;
@@ -133,33 +102,7 @@ void apply_filter(unsigned char  img[][1364][3], unsigned char  img_final[][1364
 }
 
 
-void gaussian_filter(unsigned char img_read[][1364][3], unsigned char img_write[][1364][3]){
-    //int m, n, k;
-    int p, q, r;
-    double sum;
-    double gKernel[5][5];
-    create_filter(gKernel);
-
-    for(r=0; r<3; r++){
-        sum = 0.;
-        //for each row of the filter
-        //printf("before starting filter\n");
-        //for(p=-2; p<3; p++){
-        for(p=0; p<5; p++){
-            //for each column of the filter
-            //for(q=-2; q<3; q++){
-            for(q=0; q<5; q++){
-                sum += gKernel[p][q] * img_read[p][q][r];
-            }
-        }
-        img_write[2][2][r] = sum;
-        //img_write[2][2][r] = 255;
-    }
-
-}
-
-
-void gaussian_filter2(unsigned char img_read[][1364][3], unsigned char img_write[][1364][3], int y, int x){
+void gaussian_filter2(unsigned char img_read[][848][3], unsigned char img_write[][848][3], int y, int x){
     //int m, n, k;
     int p, q, r;
     double sum;
@@ -186,41 +129,6 @@ void gaussian_filter2(unsigned char img_read[][1364][3], unsigned char img_write
 
 
 
-void apply_any_filter(unsigned char  img[][1364][3],
-                      unsigned char  img_final[][1364][3],
-                      void (*filter)(unsigned char [][1364][3], unsigned char [][1364][3])){ 
-    int w, h, b, i, j, k, offset_h, offset_v, m, n;
-    int start_left, end_left, start_top, end_top;
-    unsigned char ***img_chunk;
-    unsigned char ***img_chunk_final;
-    double sum;
-    h = 1364;
-    w = 1364;
-    b = 3;
-
-    start_left = 2;
-    end_left = w - 2;
-    start_top = 2;
-    end_top = h - 2;
-
-    for(j=start_top; j<end_top; ++j){
-        for(i=start_left; i<end_left; ++i) {
-            //convolve for each of r, g, b channels
-            // addr( & arr[ row ][ col ] ) = addr( arr ) + [ sizeof( int ) * COLS * row ]
-            //                                              + [ sizeof( int ) * col ]
-            //img_chunk = (unsigned char ***) &img + sizeof(char) * 1364 * j + sizeof(char) * i;
-            //img_chunk_final = (unsigned char ***) &img_final + sizeof(char) * 1364 * j + sizeof(char) * i;
-            //img_chunk = unsigned char ***) &img_final[j][i];
-            //img_chunk_final = (unsigned char ***) &img_final[j][i];
-            //filter(img_chunk, img_chunk_final);
-            filter((unsigned char (*)[1364][3]) img[j-2][k-2],
-                   (unsigned char (*)[1364][3]) img_final[j-2][k-2]);
-        }
-    }
-
-}
-
-
 double take_basic_callback(double x, double y, int(*filter)(int, int)){
     double ans;
     ans = x + y + filter((int) x, (int) y);
@@ -238,16 +146,16 @@ double take_callback_unsafe(double x, double y, void *address){
 
 
 
-void apply_any_filter2(unsigned char  img[][1364][3],
-                      unsigned char  img_final[][1364][3],
-                      void (*filter)(unsigned char [][1364][3], unsigned char [][1364][3], int, int)){ 
+void apply_any_filter2(unsigned char  img[][848][3],
+                      unsigned char  img_final[][848][3],
+                      void (*filter)(unsigned char [][848][3], unsigned char [][848][3], int, int)){ 
     int w, h, b, i, j, k, offset_h, offset_v, m, n;
     int start_left, end_left, start_top, end_top;
     unsigned char ***img_chunk;
     unsigned char ***img_chunk_final;
     double sum;
-    h = 1364;
-    w = 1364;
+    h = 500;
+    w = 848;
     b = 3;
 
     start_left = 2;
