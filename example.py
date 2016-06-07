@@ -1,29 +1,11 @@
-#from cffi import FFI
 from ctypes import cdll, Structure, c_int, c_double, c_uint, c_ubyte, POINTER, c_char_p, pointer, byref
 import ctypes
 from numba import cfunc, types, carray, jit
 import numpy as np
 import math
 
-c_sig = types.void(types.CPointer(types.double),
-                   types.CPointer(types.double),
-                   types.intc, types.intc)
-
-@cfunc(c_sig)
-def my_callback(in_, out, m, n):
-    in_array = carray(in_, (m, n))
-    out_array = carray(out, (m, n))
-    for i in range(m):
-        for j in range(n):
-            out_array[i, j] = 2 * in_array[i, j]
-
-c_sig2 = types.void(types.CPointer(types.uchar),
-                   types.CPointer(types.uchar),
-                   types.intc, types.intc)
-
-
 @jit
-def create_gaussian_filter(kernel):
+def create_gaussian_kernel(kernel):
     # set standard deviation to 1.0
     sigma = 1.0
     r = 0.0
@@ -46,41 +28,27 @@ def create_gaussian_filter(kernel):
 
 
 gKernel = np.zeros((5,5))
-create_gaussian_filter(gKernel)
+create_gaussian_kernel(gKernel)
+
+c_sig2 = types.void(types.CPointer(types.uchar),
+                   types.CPointer(types.uchar),
+                   types.intc, types.intc)
 
 @cfunc(c_sig2)
-def callback_for_gaussian_2(in_, out, y, x):
-    #in_array = carray(in_, (12, 9, 3), dtype=np.uint8)
-    in_array = carray(in_, (1364, 1364, 3))
-    out_array = carray(out, (1364, 1364, 3))
-    #print(b"i'm here")
+def gaussian_filter(in_, out, y, x):
+    in_array = carray(in_, (500, 848, 3))
+    out_array = carray(out, (500, 848, 3))
     for k in range(3):
         sum_ = 0.
         for p in range(-2,3):
             for q in range(-2,3):
                 sum_ += gKernel[p+2,q+2] * in_array[y+p,x+q,k]
-        #out_array[x, y, k] = sum_
         out_array[y, x, k] = sum_
 
 
-c_sig3 = types.int64(types.int64, types.int64)
-
-@cfunc(c_sig3)
-def callback3(in_, out):
-    return in_ + out
-
-
-
-cdll.LoadLibrary("libifilter.dylib")
 ifilter = cdll.LoadLibrary("libifilter.dylib")
-tbc = ifilter.take_basic_callback
-tbc.restype = c_double
-d1 = c_double(9)
-d2 = c_double(12)
-cf = ctypes.CFUNCTYPE(c_int, c_int, c_int)
-#tbc.argtypes = [c_int, cf]
-out = tbc(d1, d2, callback3.ctypes)
 
+# Create integers to pass in to C function
 int_p = POINTER(c_int)
 i1 = c_int()
 i2 = c_int()
@@ -88,12 +56,23 @@ i3 = c_int()
 ip1 = pointer(i1)
 ip2 = pointer(i2)
 ip3 = pointer(i3)
-array_type = c_ubyte * 1364 * 1364 * 3
-#p_array_type = POINTER(array_type)
+
+# Create array type to hold raw memory for filtered image
+array_type = c_ubyte * 500 * 848 * 3
+
+# Create a new empty array
 arg2 = array_type()
+
+# Get the read_png function from the shared library and set arg/result types
 read_png = ifilter.read_png
 read_png.restype = POINTER(c_ubyte)
 read_png.argtypes = [c_char_p, int_p, int_p, int_p]
-pic = read_png(b"austin_flights.png", ip1, ip2, ip3)
-ifilter.apply_any_filter3(pic, byref(arg2), callback_for_gaussian_2.ctypes)
-ifilter.write_png(byref(arg2), 1364, 1364)
+
+# Read the file
+pic = read_png(b"landscape1.png", ip1, ip2, ip3)
+
+# pass the numba-jitted "cfunc" to the C function
+ifilter.apply_any_filter(pic, byref(arg2), gaussian_filter.ctypes)
+
+# Write the resulting file
+ifilter.write_png(byref(arg2), 848, 500)
