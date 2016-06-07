@@ -31,12 +31,12 @@ create_gaussian_kernel(gKernel)
 
 c_sig2 = types.void(types.CPointer(types.uchar),
                    types.CPointer(types.uchar),
-                   types.intc, types.intc)
+                   types.intc, types.intc, types.intc, types.intc)
 
 @cfunc(c_sig2)
-def gaussian_filter(in_, out, y, x):
-    in_array = carray(in_, (500, 848, 3))
-    out_array = carray(out, (500, 848, 3))
+def gaussian_filter(in_, out, y, x, width, height):
+    in_array = carray(in_, (height, width , 3))
+    out_array = carray(out, (height, width, 3))
     for k in range(3):
         sum_ = 0.
         for p in range(-2,3):
@@ -71,7 +71,7 @@ array_type = c_ubyte * heightp[0] * widthp[0] * 3
 arg2 = array_type()
 
 # pass the numba-jitted "cfunc" to the C function
-ifilter.apply_any_filter(pic, byref(arg2), gaussian_filter.ctypes)
+ifilter.apply_any_filter(pic, byref(arg2), widthp[0], heightp[0], gaussian_filter.ctypes)
 # Write the resulting file
 #ifilter.write_png(byref(arg2), 848, 500)
 ifilter.write_png(b"landscape_out_python.png", byref(arg2), widthp[0], heightp[0])
