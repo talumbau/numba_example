@@ -64,8 +64,6 @@ read_png.argtypes = [c_char_p, int_p, int_p, int_p]
 # Read the file
 pic = read_png(b"landscape1.png", widthp, heightp, bpp)
 
-import pdb;pdb.set_trace()
-
 # Create array type to hold raw memory for filtered image
 array_type = c_ubyte * heightp[0] * widthp[0] * 3
 
@@ -74,7 +72,6 @@ arg2 = array_type()
 
 # pass the numba-jitted "cfunc" to the C function
 ifilter.apply_any_filter(pic, byref(arg2), gaussian_filter.ctypes)
-
 # Write the resulting file
 #ifilter.write_png(byref(arg2), 848, 500)
 ifilter.write_png(b"landscape_out_python.png", byref(arg2), widthp[0], heightp[0])

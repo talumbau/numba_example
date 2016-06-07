@@ -31,15 +31,13 @@ void create_filter(double gKernel[][5])
 }
 
 
-void gaussian_filter(unsigned char *img_read, unsigned char *img_write, int y, int x){
+void gaussian_filter(unsigned char *img_read, unsigned char *img_write, int y, int x, int width, int height){
     int p, q, r;
     double sum;
     double gKernel[5][5];
-    unsigned char (*imread_array)[848][3] = (unsigned char (*)[848][3]) img_read;
-    unsigned char (*imwrite_array)[848][3] = (unsigned char (*)[848][3]) img_write;
+    unsigned char (*imread_array)[width][3] = (unsigned char (*)[width][3]) img_read;
+    unsigned char (*imwrite_array)[width][3] = (unsigned char (*)[width][3]) img_write;
     create_filter(gKernel);
-
-
 
     for(r=0; r<3; r++){
         sum = 0.;
@@ -61,15 +59,15 @@ void gaussian_filter(unsigned char *img_read, unsigned char *img_write, int y, i
 
 
 void apply_any_filter(unsigned char  *img,
-                      unsigned char  *img_final,
-                      void (*filter)(unsigned char *, unsigned char *, int, int)){ 
+                      unsigned char  *img_final, int width, int height,
+                      void (*filter)(unsigned char *, unsigned char *, int, int, int, int)){
     int w, h, b, i, j, k, offset_h, offset_v, m, n;
     int start_left, end_left, start_top, end_top;
     unsigned char ***img_chunk;
     unsigned char ***img_chunk_final;
     double sum;
-    h = 500;
-    w = 848;
+    h = height;
+    w = width;
     b = 3;
 
     start_left = 2;
@@ -80,7 +78,7 @@ void apply_any_filter(unsigned char  *img,
     for(j=start_top; j<end_top; ++j){
         for(i=start_left; i<end_left; ++i) {
             //convolve for each of r, g, b channels
-            filter(img, img_final, j, i);
+            filter(img, img_final, j, i, w, h);
         }
     }
 
